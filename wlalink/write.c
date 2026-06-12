@@ -2335,10 +2335,11 @@ static int _try_put_label(map_t map, struct label *l, int duplicate_check) {
         return FAILED;
       }
       
-      /* don't insert duplicates into the hashmap */
-      return SUCCEEDED;
+      /* a duplicate, but duplicates are allowed (-c/-C): fall through and
+         overwrite so the last definition wins, as it did before the
+         duplicate-check split was introduced */
     }
-  
+
     if ((err = hashmap_put(map, l->name, l)) != MAP_OK) {
       print_text(NO, "_TRY_PUT_LABEL: Hashmap error %d. Please send a bug report!\n", err);
       return FAILED;
