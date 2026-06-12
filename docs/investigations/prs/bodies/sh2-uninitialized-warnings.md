@@ -1,0 +1,5 @@
+`_sh2_parse_number` only writes `*value` when `input_number()` returns `SUCCEEDED` or `INPUT_NUMBER_STACK`. The four SH-2 `IMM8*` decode paths declare a local `value`, pass it in, and `_sh2_emit_low8` reads it only for those same result types — so the value is never read while undefined. GCC can't track that correlation across the call boundary and warns at the four call sites (`IMM8_RN` / `IMM8_R0` / `IMM8_GBR_R0` / `IMM8`).
+
+Initialise the out-parameter to 0 so it is always defined, with an in-code comment documenting that this is a known GCC false positive and that the 0 is always overwritten before any read (so it never reaches emitted code). No behavioural change; removes all four `-Wmaybe-uninitialized` warnings.
+
+A `#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"` would also silence it, but `-Wmaybe-uninitialized` is a GCC-only warning name: Clang would flag it (`-Wunknown-warning-option`) and MSVC would flag the pragma itself (`C4068`), trading one benign GCC warning for new ones on the other two compilers in CI. The plain ANSI-C initialiser stays clean across GCC, Clang, and MSVC.
