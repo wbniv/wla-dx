@@ -1582,6 +1582,15 @@ static int _sh2_parse_number(int *index, int *value, int *result_type, char *lab
 
   int old_index, result;
 
+  /* Define the out-parameter up front to silence a GCC -Wmaybe-uninitialized
+     false positive. The four SH-2 IMM8 sites pass 'value' to _sh2_emit_low8(),
+     which reads it only when result_type is SUCCEEDED or INPUT_NUMBER_STACK --
+     exactly the cases that assign *value below. GCC can't see that correlation
+     across the call boundary, so it warns. The 0 is always overwritten before
+     any read and never reaches emitted code; this keeps the build warning-free
+     across GCC/Clang/MSVC without a compiler-specific pragma. */
+  *value = 0;
+
   *index = _sh2_skip_spaces(*index);
   old_index = g_source_index;
   g_source_index = *index;
